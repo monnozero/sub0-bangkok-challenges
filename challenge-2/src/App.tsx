@@ -49,7 +49,7 @@ const App: React.FC = () => {
   const [injected, setInjected] = useState<Injected | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [destAddress, setDestAddress] = useState<string>('');
-  const [amount, setAmount] = useState<number>(0);
+  const [amount, setAmount] = useState<number>(1);
   //   // 1. Connect to SubWallet
   //   // 2. Show connected account (name & address)
 
@@ -200,13 +200,38 @@ const App: React.FC = () => {
 
           {balance ? <p>Free Balance: {balance} WND</p> : <p>Loading balance...</p>}
 
-          <div>
-            <h1>Transfer Funds</h1>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexDirection: 'column',
+            width: '100%',
+            padding: '20px',
+            backgroundColor: '#f5f5f5',
+            borderRadius: '5px',
+            marginBottom: '10px',
+            boxShadow: '0 0 5px rgba(0, 0, 0, 0.2)',
+            gap:'2px'
+          }}>
+            <h1 >Transfer Funds</h1>
             {error && <p style={{ color: 'red' }}>{error}</p>}
-            <div>
-              <label>
+            <div >
+              <label
+              style={{
+                display: 'flex',
+              flexDirection:'column'
+              }}
+              >
                 Destination Address:
                 <input
+                style={{
+                  border: '1px solid',
+                  padding: '4px',
+                  marginBottom: '10px',
+                  width: '300px',
+                  borderRadius: '5px',
+                  outline: 'none',
+                }}
                   type='text'
                   value={destAddress}
                   onChange={(e) => setDestAddress(e.target.value)}
@@ -215,17 +240,42 @@ const App: React.FC = () => {
               </label>
             </div>
             <div>
-              <label>
+              <label
+              style={{
+                display: 'flex',
+              flexDirection:'column'
+              }}
+              >
                 Amount:
                 <input
-                  type='number'
+                 style={{
+                  border: '1px solid',
+                  padding: '4px',
+                  marginBottom: '10px',
+                  width: '300px',
+                  borderRadius: '5px',
+                  outline: 'none',
+                }}
+                
                   value={amount}
                   onChange={(e) => setAmount(Number(e.target.value))}
                   placeholder='Enter amount to transfer'
                 />
               </label>
             </div>
-            <button onClick={handleTransfer} disabled={isLoading}>
+            <button 
+            style={{
+              backgroundColor: 'green',
+              color: 'white',
+              padding: '10px 20px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              outline: 'none',
+              border: 'none',
+            }
+            
+            }
+            onClick={handleTransfer} disabled={isLoading}>
               {isLoading ? 'Transferring...' : 'Transfer'}
             </button>
           </div>

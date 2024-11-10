@@ -98,7 +98,7 @@ const App: React.FC = () => {
     setError(null);
 
     try {
-      const amount: number = 1; // how many token in DOT or WND
+    
       // Convert the amount (DOT, or WND) to Planck unit
       const amountToTransfer: bigint = BigInt(amount) * BigInt(Math.pow(10, WESTEND.decimals));
 

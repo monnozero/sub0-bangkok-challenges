@@ -16,12 +16,15 @@ const App: React.FC = () => {
   const [balance, setBalance] = useState<string | null>(null);
   const [injected, setInjected] = useState<Injected | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingIden, setIsLoadingIden] = useState<boolean>(false);
+
   const [destAddress, setDestAddress] = useState<string>('');
   const [amount, setAmount] = useState<number>(1);
 
   const [displayName, setDisplayName] = useState<any>('');
   const [email, setEmail] = useState<any>('');
   const [discord, setDiscord] = useState<any>('');
+  const [identity, setIdentity] = useState<any>();
 
   //   // 1. Connect to SubWallet
   //   // 2. Show connected account (name & address)
@@ -129,7 +132,7 @@ const App: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
+    setIsLoadingIden(true);
     setError(null);
 
     if (!displayName) {
@@ -148,7 +151,7 @@ const App: React.FC = () => {
     }
 
     console.log({
-      display: {type: 'Raw', value: displayName},
+      display: { type: 'Raw', value: displayName },
       legal: { type: 'None' },
       web: { type: 'None' },
       matrix: { type: 'None' },
@@ -157,12 +160,11 @@ const App: React.FC = () => {
       twitter: { type: 'None' },
       github: { type: 'None' },
       discord: { type: 'None' },
-
     });
     try {
       await client.tx.identity
         .setIdentity({
-          display: {type: 'Raw', value: displayName},
+          display: { type: 'Raw', value: displayName },
           legal: { type: 'None' },
           web: { type: 'None' },
           matrix: { type: 'None' },
@@ -170,8 +172,7 @@ const App: React.FC = () => {
           image: { type: 'None' },
           twitter: { type: 'None' },
           github: { type: 'None' },
-          discord: { type: 'None' },
-
+          discord: { type: 'Raw', value: discord },
         })
         .signAndSend(accounts[0].address, { signer: injected.signer }, (result) => {
           console.log(result.status);
@@ -191,8 +192,16 @@ const App: React.FC = () => {
       console.error('Identity failed:', err);
       setError('Identity failed. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsLoadingIden(false);
     }
+  };
+
+  //    9. Fetch & render your on-chain identity (via client.query.identity.identityOf)
+  const fetchIdentity = async (client: LegacyClient<any>, connectedAccounts: InjectedAccount) => {
+    const account: InjectedAccount = connectedAccounts; // get from accounts list - 6.2
+    const identity: FrameSystemAccountInfo = await client.query.identity.identityOf(account.address);
+    console.log('🚀 ~ fetchIdentity ~ identity:', identity);
+    return identity;
   };
 
   useEffect(() => {
@@ -207,6 +216,9 @@ const App: React.FC = () => {
 
           const balance = await fetchBalance(dedotClient, connectedAccounts[0]);
           setBalance(balance);
+
+          const identity = await fetchIdentity(dedotClient, connectedAccounts[0]);
+          setIdentity(identity);
 
           if (dedotClient) {
             const unsub = await subscribeToBalanceChanges(dedotClient, connectedAccounts[0]);
@@ -227,20 +239,115 @@ const App: React.FC = () => {
   }, []);
   return (
     <div>
-      <h1>Connect to SubWallet</h1>
+      <h1
+        style={{
+          color: '#333',
+          marginBottom: '20px',
+        }}>
+        Connect to SubWallet
+      </h1>
       {error ? (
-        <p style={{ color: 'red' }}>{error}</p>
+        <p
+          style={{
+            color: 'red',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            marginTop: '10px',
+          }}>
+          {error}
+        </p>
       ) : (
         <div>
           {accounts.length > 0 ? (
-            <p>
-              {accounts[0].name || 'Unnamed'} ({accounts[0].address})
+            <p
+              style={{
+                fontSize: '16px',
+                margin: '8px 0',
+                color: '#555',
+              }}>
+              <strong style={{ color: '#222' }}>Account:</strong> {accounts[0].name || 'Unnamed'} ({accounts[0].address}
+              )
             </p>
           ) : (
-            <p>Loading accounts...</p>
+            <p
+              style={{
+                fontSize: '14px',
+                color: '#666',
+                margin: '8px 0',
+              }}>
+              Loading accounts...
+            </p>
           )}
 
-          {balance ? <p>Free Balance: {balance} WND</p> : <p>Loading balance...</p>}
+          {balance ? (
+            <p
+              style={{
+                fontSize: '16px',
+                margin: '8px 0',
+                color: '#555',
+              }}>
+              <strong style={{ color: '#222' }}>Free Balance:</strong> {balance} WND
+            </p>
+          ) : (
+            <p
+              style={{
+                fontSize: '14px',
+                color: '#666',
+                margin: '8px 0',
+              }}>
+              Loading balance...
+            </p>
+          )}
+
+          {identity ? (
+            <div
+              style={{
+                border: '1px solid #ddd',
+                borderRadius: '8px',
+                padding: '16px',
+                backgroundColor: '#f9f9f9',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                maxWidth: '400px',
+                margin: '20px auto',
+              }}>
+              <h2
+                style={{
+                  textAlign: 'center',
+                  color: '#333',
+                  borderBottom: '2px solid #ccc',
+                  paddingBottom: '8px',
+                  marginBottom: '16px',
+                }}>
+                Identity
+              </h2>
+              <p
+                style={{
+                  fontSize: '16px',
+                  margin: '8px 0',
+                  color: '#555',
+                }}>
+                <strong style={{ color: '#222' }}>Display Name:</strong> {identity[0].info.display.value || 'N/A'}
+              </p>
+              <p
+                style={{
+                  fontSize: '16px',
+                  margin: '8px 0',
+                  color: '#555',
+                }}>
+                <strong style={{ color: '#222' }}>Email:</strong> {identity[0].info.email.value || 'N/A'}
+              </p>
+              <p
+                style={{
+                  fontSize: '16px',
+                  margin: '8px 0',
+                  color: '#555',
+                }}>
+                <strong style={{ color: '#222' }}>Discord:</strong> {identity[0].info.discord.value || 'N/A'}
+              </p>
+            </div>
+          ) : (
+            <p style={{ textAlign: 'center', color: '#666' }}>Loading identity...</p>
+          )}
 
           <div
             style={{
@@ -415,8 +522,8 @@ const App: React.FC = () => {
                 outline: 'none',
                 border: 'none',
               }}
-              disabled={isLoading}>
-              {isLoading ? 'Identity...' : 'Identity'}
+              disabled={isLoadingIden}>
+              {isLoadingIden ? 'Identity...' : 'Identity'}
             </button>
           </div>
         </div>

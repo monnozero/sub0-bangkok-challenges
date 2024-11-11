@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Injected, InjectedAccount, InjectedWindowProvider, InjectedWindow } from '@polkadot/extension-inject/types';
-import { DedotClient, WsProvider } from 'dedot';
+import { LegacyClient, WsProvider } from 'dedot';
 import { WestendApi, WestendPeopleApi } from '@dedot/chaintypes';
 import { WESTEND_PEOPLE } from './networks';
 import { FrameSystemAccountInfo } from '@dedot/chaintypes/westend';
 import { formatBalance } from './utils';
 
-const App: React.FC = () => { 
+const App: React.FC = () => {
   const [accounts, setAccounts] = useState<InjectedAccount[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [client, setClient] = useState<DedotClient<WestendPeopleApi> | null>(null);
+  const [client, setClient] = useState<LegacyClient<WestendPeopleApi> | null>(null);
 
   const [connected, setConnected] = useState<boolean>(false);
   const [balance, setBalance] = useState<string | null>(null);
@@ -41,16 +41,17 @@ const App: React.FC = () => {
   };
 
   //   // 3. Initialize `DedotClient` to connect to the network (Westend testnet)
-  const initializeClient = async (endpoint: string): Promise<DedotClient<WestendPeopleApi>> => {
+  const initializeClient = async (endpoint: string): Promise<LegacyClient<WestendPeopleApi>> => {
     // initialize the client and connect to the network
-    const client = new DedotClient<WestendPeopleApi>(new WsProvider(WESTEND_PEOPLE.endpoint));
+    const client = new LegacyClient<WestendPeopleApi>(new WsProvider(WESTEND_PEOPLE.endpoint));
+    console.log(client);
     await client.connect();
 
     return client;
   };
 
   //   // 4. Fetch & show balance for connected account
-  const fetchBalance = async (client: DedotClient<any>, connectedAccounts: InjectedAccount): Promise<string> => {
+  const fetchBalance = async (client: LegacyClient<any>, connectedAccounts: InjectedAccount): Promise<string> => {
     //
     const account: InjectedAccount = connectedAccounts; // get from accounts list - 6.2
     const balance: FrameSystemAccountInfo = await client.query.system.account(account.address);
@@ -103,7 +104,7 @@ const App: React.FC = () => {
   //   // 8. Subscribe to balance changing
 
   const subscribeToBalanceChanges = async (
-    client: DedotClient<any>,
+    client: LegacyClient<any>,
     connectedAccounts: InjectedAccount,
   ): Promise<() => void> => {
     try {
@@ -146,26 +147,31 @@ const App: React.FC = () => {
       return;
     }
 
+    console.log({
+      display: {type: 'Raw', value: displayName},
+      legal: { type: 'None' },
+      web: { type: 'None' },
+      matrix: { type: 'None' },
+      email: { type: 'Raw', value: email },
+      image: { type: 'None' },
+      twitter: { type: 'None' },
+      github: { type: 'None' },
+      discord: { type: 'None' },
+
+    });
     try {
       await client.tx.identity
         .setIdentity({
-          display: displayName,
-          email: email,
-          legal: {
-            type: 'None'
-          },
-          web: {
-            type: 'None'
-          },
-          riot: {
-            type: 'None'
-          },
-          image: {
-            type: 'None'
-          },
-          twitter: {
-            type: 'None'
-          }
+          display: {type: 'Raw', value: displayName},
+          legal: { type: 'None' },
+          web: { type: 'None' },
+          matrix: { type: 'None' },
+          email: { type: 'Raw', value: email },
+          image: { type: 'None' },
+          twitter: { type: 'None' },
+          github: { type: 'None' },
+          discord: { type: 'None' },
+
         })
         .signAndSend(accounts[0].address, { signer: injected.signer }, (result) => {
           console.log(result.status);
@@ -399,7 +405,7 @@ const App: React.FC = () => {
             </div>
 
             <button
-            // onClick={handleIdentity}
+              onClick={handleIdentity}
               style={{
                 backgroundColor: 'green',
                 color: 'white',

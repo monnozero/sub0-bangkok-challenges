@@ -185,6 +185,7 @@ const App: React.FC = () => {
               setError(`Identity error: ${error}`);
             } else {
               alert('Identity successful!');
+               fetchIdentity(client,accounts[0]);
             }
           }
         });
@@ -201,7 +202,8 @@ const App: React.FC = () => {
     const account: InjectedAccount = connectedAccounts; // get from accounts list - 6.2
     const identity: FrameSystemAccountInfo = await client.query.identity.identityOf(account.address);
     console.log('🚀 ~ fetchIdentity ~ identity:', identity);
-    return identity;
+    setIdentity(identity);
+
   };
 
   useEffect(() => {
@@ -217,9 +219,8 @@ const App: React.FC = () => {
           const balance = await fetchBalance(dedotClient, connectedAccounts[0]);
           setBalance(balance);
 
-          const identity = await fetchIdentity(dedotClient, connectedAccounts[0]);
-          setIdentity(identity);
-
+         await fetchIdentity(dedotClient, connectedAccounts[0]);
+         
           if (dedotClient) {
             const unsub = await subscribeToBalanceChanges(dedotClient, connectedAccounts[0]);
 

@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Injected, InjectedAccount, InjectedWindowProvider, InjectedWindow } from '@polkadot/extension-inject/types';
 import { DedotClient, WsProvider } from 'dedot';
-import { WestendApi } from '@dedot/chaintypes';
+import { WestendApi, WestendPeopleApi } from '@dedot/chaintypes';
 import { WESTEND_PEOPLE } from './networks';
 import { FrameSystemAccountInfo } from '@dedot/chaintypes/westend';
 import { formatBalance } from './utils';
 
-const App: React.FC = () => {
+const App: React.FC = () => { 
   const [accounts, setAccounts] = useState<InjectedAccount[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [client, setClient] = useState<DedotClient<WestendApi> | null>(null);
+  const [client, setClient] = useState<DedotClient<WestendPeopleApi> | null>(null);
 
   const [connected, setConnected] = useState<boolean>(false);
   const [balance, setBalance] = useState<string | null>(null);
@@ -41,9 +41,9 @@ const App: React.FC = () => {
   };
 
   //   // 3. Initialize `DedotClient` to connect to the network (Westend testnet)
-  const initializeClient = async (endpoint: string): Promise<DedotClient<WestendApi>> => {
+  const initializeClient = async (endpoint: string): Promise<DedotClient<WestendPeopleApi>> => {
     // initialize the client and connect to the network
-    const client = new DedotClient<WestendApi>(new WsProvider(WESTEND_PEOPLE.endpoint));
+    const client = new DedotClient<WestendPeopleApi>(new WsProvider(WESTEND_PEOPLE.endpoint));
     await client.connect();
 
     return client;
@@ -122,64 +122,72 @@ const App: React.FC = () => {
     }
   };
 
-  // const handleIdentity = async () => {
-  //   if (!client || !accounts || !injected) {
-  //     setError('Missing necessary information (client, account, or injected wallet)');
-  //     return;
-  //   }
+  const handleIdentity = async () => {
+    if (!client || !accounts || !injected) {
+      setError('Missing necessary information (client, account, or injected wallet)');
+      return;
+    }
 
-  //   setIsLoading(true);
-  //   setError(null);
+    setIsLoading(true);
+    setError(null);
 
-  //   if (!displayName) {
-  //     alert('Enter displayName!');
-  //     return;
-  //   }
+    if (!displayName) {
+      alert('Enter displayName!');
+      return;
+    }
 
-  //   if (!email) {
-  //     alert('Enter email!');
-  //     return;
-  //   }
+    if (!email) {
+      alert('Enter email!');
+      return;
+    }
 
-  //   if (!discord) {
-  //     alert('Enter Discord!');
-  //     return;
-  //   }
+    if (!discord) {
+      alert('Enter Discord!');
+      return;
+    }
 
-  //   try {
-  //     await client.tx.identity
-  //       .setIdentity({
-  //         display: displayName,
-  //         email: email,
-  //         additional:[],
-  //         image: '0x123abc456def',
-  //         url: "",
-  //         twitter: "",
-  //         github: "",
-  //         linkedin: "",
-  //       }
-  //       )
-  //       .signAndSend(accounts[0].address, { signer: injected.signer }, (result) => {
-  //         console.log(result.status);
+    try {
+      await client.tx.identity
+        .setIdentity({
+          display: displayName,
+          email: email,
+          legal: {
+            type: 'None'
+          },
+          web: {
+            type: 'None'
+          },
+          riot: {
+            type: 'None'
+          },
+          image: {
+            type: 'None'
+          },
+          twitter: {
+            type: 'None'
+          }
+        })
+        .signAndSend(accounts[0].address, { signer: injected.signer }, (result) => {
+          console.log(result.status);
 
-  //         // 'BestChainBlockIncluded': Transaction is included in the best block of the chain
-  //         // 'Finalized': Transaction is finalized
-  //         if (result.status.type === 'BestChainBlockIncluded' || result.status.type === 'Finalized') {
-  //           if (result.dispatchError) {
-  //             const error = `${JSON.stringify(Object.values(result.dispatchError))}`;
-  //             setError(`Identity error: ${error}`);
-  //           } else {
-  //             alert('Identity successful!');
-  //           }
-  //         }
-  //       });
-  //   } catch (err) {
-  //     console.error('Identity failed:', err);
-  //     setError('Identity failed. Please try again.');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+          // 'BestChainBlockIncluded': Transaction is included in the best block of the chain
+          // 'Finalized': Transaction is finalized
+          if (result.status.type === 'BestChainBlockIncluded' || result.status.type === 'Finalized') {
+            if (result.dispatchError) {
+              const error = `${JSON.stringify(Object.values(result.dispatchError))}`;
+              setError(`Identity error: ${error}`);
+            } else {
+              alert('Identity successful!');
+            }
+          }
+        });
+    } catch (err) {
+      console.error('Identity failed:', err);
+      setError('Identity failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const setup = async () => {
